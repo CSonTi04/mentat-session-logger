@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import os
+from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Protocol, cast
@@ -35,23 +37,79 @@ class WhisperXBackend:
     ) -> dict[str, Any]:
         try:
             import whisperx  # type: ignore
+            from whisperx.diarize import DiarizationPipeline, assign_word_speakers  # type: ignore
         except ImportError as exc:
             raise RuntimeError(
                 "whisperx is not installed; install optional runtime dependencies"
             ) from exc
 
         model = whisperx.load_model(model_name, self.device, language=language)
-        result = model.transcribe(str(audio_path))
+        audio = whisperx.load_audio(str(audio_path))
+        result = model.transcribe(audio)
+        warnings: list[str] = []
+        diarization_records: list[dict[str, Any]] = []
+
+        # Try alignment first so diarization can be mapped to better timestamps/words.
+        segments = cast(list[dict[str, Any]], result.get("segments", []))
+        try:
+            align_language = str(result.get("language", language))
+            align_model, metadata = whisperx.load_align_model(
+                language_code=align_language,
+                device=self.device,
+            )
+            aligned = whisperx.align(
+                segments,
+                align_model,
+                metadata,
+                audio,
+                self.device,
+                return_char_alignments=False,
+            )
+            if isinstance(aligned, dict):
+                result = aligned
+                segments = cast(list[dict[str, Any]], result.get("segments", segments))
+        except Exception as exc:
+            warnings.append(f"alignment skipped: {exc}")
+
+        # True speaker diarization requires a Hugging Face token.
+        hf_token = os.getenv("HF_TOKEN") or os.getenv("HUGGINGFACE_TOKEN")
+        if hf_token:
+            try:
+                diarize_model = DiarizationPipeline(
+                    use_auth_token=hf_token,
+                    device=self.device,
+                )
+                diarize_segments = diarize_model(
+                    audio,
+                    min_speakers=min_speakers,
+                    max_speakers=max_speakers,
+                )
+                if hasattr(diarize_segments, "to_dict"):
+                    diarization_records = cast(
+                        list[dict[str, Any]],
+                        diarize_segments.to_dict("records"),
+                    )
+                result = assign_word_speakers(diarize_segments, result)
+                segments = cast(list[dict[str, Any]], result.get("segments", segments))
+            except Exception as exc:
+                warnings.append(f"diarization skipped: {exc}")
+        else:
+            warnings.append("diarization skipped: set HF_TOKEN to enable speaker diarization")
+
+        # Fill missing speaker labels from word-level speaker attribution when available.
+        for segment in segments:
+            if "speaker" not in segment or not segment.get("speaker"):
+                segment["speaker"] = _speaker_from_words(segment)
 
         # Alignment/diarization may fail depending on local setup; keep transcript usable.
-        segments = result.get("segments", [])
         return {
             "language": language,
             "model": model_name,
             "segments": segments,
-            "diarization": result.get("diarization", []),
+            "diarization": diarization_records,
             "min_speakers": min_speakers,
             "max_speakers": max_speakers,
+            "warnings": warnings,
         }
 
 
@@ -145,3 +203,19 @@ def _ts(seconds: float) -> str:
     m = (total % 3600) // 60
     s = total % 60
     return f"{h:02d}:{m:02d}:{s:02d}"
+
+
+def _speaker_from_words(segment: dict[str, Any]) -> str:
+    words = segment.get("words", [])
+    if not isinstance(words, list):
+        return "SPEAKER_??"
+    counts: Counter[str] = Counter()
+    for word in words:
+        if not isinstance(word, dict):
+            continue
+        speaker = word.get("speaker")
+        if isinstance(speaker, str) and speaker.strip():
+            counts[speaker.strip()] += 1
+    if counts:
+        return counts.most_common(1)[0][0]
+    return "SPEAKER_??"

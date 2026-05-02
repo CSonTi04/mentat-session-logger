@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 from mentat_session_logger.artifacts import ArtifactStore
@@ -15,18 +16,12 @@ class MemoryUpdateProposalStage:
         session_notebook = artifacts.final_file("session_notebook.md")
         source_summary = read_text(session_notebook) if session_notebook.exists() else ""
         delta = read_text(canon_delta) if canon_delta.exists() else ""
+        candidates = _canon_candidates(delta)
 
         payload = {
             "session": context.session_id,
             "approved": False,
-            "new_canon_candidates": [
-                {
-                    "fact": "Review generated session notebook for canon candidates.",
-                    "confidence": "medium",
-                    "source_time": "00:00:00-00:00:00",
-                    "suggested_destination": "canon_uncertain.md",
-                }
-            ],
+            "new_canon_candidates": candidates if candidates else _default_candidate(),
             "possible_contradictions": [],
             "notes": {
                 "notebook_excerpt": source_summary[:500],
@@ -104,3 +99,39 @@ class ApprovedMemoryApplyStage:
 def _append_markdown(path: Path, text: str) -> None:
     current = path.read_text(encoding="utf-8") if path.exists() else ""
     write_text(path, current.rstrip() + "\n" + text.strip() + "\n")
+
+
+def _default_candidate() -> list[dict[str, str]]:
+    return [
+        {
+            "fact": "Review generated session notebook for canon candidates.",
+            "confidence": "medium",
+            "source_time": "00:00:00-00:00:00",
+            "suggested_destination": "canon_uncertain.md",
+        }
+    ]
+
+
+def _canon_candidates(canon_delta: str) -> list[dict[str, str]]:
+    candidates: list[dict[str, str]] = []
+    for line in canon_delta.splitlines():
+        match = re.match(r"^\s*-\s+(.*\S)\s*$", line)
+        if match is None:
+            continue
+        fact = match.group(1).strip()
+        if fact.lower() in {
+            "none extracted",
+            "new facts",
+            "updated facts",
+            "possible contradictions",
+        }:
+            continue
+        candidates.append(
+            {
+                "fact": fact,
+                "confidence": "medium",
+                "source_time": "00:00:00-00:00:00",
+                "suggested_destination": "canon_uncertain.md",
+            }
+        )
+    return candidates
