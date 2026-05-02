@@ -3,7 +3,10 @@ from pathlib import Path
 import pytest
 
 from mentat_session_logger.artifacts import ArtifactStore
-from mentat_session_logger.campaign_memory import ApprovedMemoryApplyStage, MemoryUpdateProposalStage
+from mentat_session_logger.campaign_memory import (
+    ApprovedMemoryApplyStage,
+    MemoryUpdateProposalStage,
+)
 from mentat_session_logger.environments import EnvironmentResolver
 from mentat_session_logger.io import write_yaml
 from mentat_session_logger.models import SessionContext

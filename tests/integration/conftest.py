@@ -20,12 +20,12 @@ PROFILES: dict[str, dict] = {
     "laptop": {
         "model": "phi3:mini",
         "timeout": 90,
-        "description": "CPU-friendly – fits in ~2 GB RAM",
+        "description": "CPU-friendly - fits in ~2 GB RAM",
     },
     "rig": {
         "model": "llama3.1:8b",
         "timeout": 180,
-        "description": "GPU-accelerated – 8 GB VRAM recommended",
+        "description": "GPU-accelerated - 8 GB VRAM recommended",
     },
 }
 

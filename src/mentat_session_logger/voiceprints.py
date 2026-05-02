@@ -7,8 +7,13 @@ from typing import Protocol
 import numpy as np
 
 from mentat_session_logger.artifacts import ArtifactStore
-from mentat_session_logger.io import read_json, read_yaml, write_json, write_yaml
-from mentat_session_logger.models import ArtifactRef, SessionContext, SpeakerMatchSuggestion, StageResult
+from mentat_session_logger.io import read_json, read_yaml, write_yaml
+from mentat_session_logger.models import (
+    ArtifactRef,
+    SessionContext,
+    SpeakerMatchSuggestion,
+    StageResult,
+)
 
 
 class SpeakerEmbeddingBackend(Protocol):
@@ -64,7 +69,11 @@ class VoiceprintService:
 class SpeakerMatchingStage:
     name = "match_speakers"
 
-    def __init__(self, backend: SpeakerEmbeddingBackend | None = None, unknown_threshold: float = 0.65) -> None:
+    def __init__(
+        self,
+        backend: SpeakerEmbeddingBackend | None = None,
+        unknown_threshold: float = 0.65,
+    ) -> None:
         self.backend = backend or SimpleEmbeddingBackend()
         self.unknown_threshold = unknown_threshold
 
@@ -92,7 +101,9 @@ class SpeakerMatchingStage:
 
         suggestions: dict[str, SpeakerMatchSuggestion] = {}
         for speaker_id, texts in speakers.items():
-            pseudo = (context.env.root / "sessions" / context.session_id / "raw" / f"{speaker_id}.txt")
+            pseudo = (
+                context.env.root / "sessions" / context.session_id / "raw" / f"{speaker_id}.txt"
+            )
             pseudo.write_text("\n".join(texts), encoding="utf-8")
             speaker_embedding = self.backend.embedding_from_audio(pseudo)
 

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Protocol
+from typing import Any, Protocol, cast
 
 from mentat_session_logger.artifacts import ArtifactStore
 from mentat_session_logger.io import write_json, write_text
@@ -17,7 +17,7 @@ class AsrBackend(Protocol):
         model_name: str,
         min_speakers: int,
         max_speakers: int,
-    ) -> dict:
+    ) -> dict[str, Any]:
         ...
 
 
@@ -32,11 +32,13 @@ class WhisperXBackend:
         model_name: str,
         min_speakers: int,
         max_speakers: int,
-    ) -> dict:
+    ) -> dict[str, Any]:
         try:
             import whisperx  # type: ignore
         except ImportError as exc:
-            raise RuntimeError("whisperx is not installed; install optional runtime dependencies") from exc
+            raise RuntimeError(
+                "whisperx is not installed; install optional runtime dependencies"
+            ) from exc
 
         model = whisperx.load_model(model_name, self.device, language=language)
         result = model.transcribe(str(audio_path))
@@ -62,7 +64,7 @@ class StubAsrBackend:
         model_name: str,
         min_speakers: int,
         max_speakers: int,
-    ) -> dict:
+    ) -> dict[str, Any]:
         return {
             "language": language,
             "model": model_name,
@@ -84,7 +86,12 @@ class StubAsrBackend:
 class TranscriptionStage:
     name = "transcribe"
 
-    def __init__(self, backend: AsrBackend, model_name: str = "large-v3", language: str = "hu") -> None:
+    def __init__(
+        self,
+        backend: AsrBackend,
+        model_name: str = "large-v3",
+        language: str = "hu",
+    ) -> None:
         self.backend = backend
         self.model_name = model_name
         self.language = language
@@ -108,7 +115,8 @@ class TranscriptionStage:
 
         raw_lines: list[str] = []
         diarized_lines: list[str] = []
-        for segment in payload.get("segments", []):
+        segments = cast(list[dict[str, Any]], payload.get("segments", []))
+        for segment in segments:
             start = _ts(float(segment.get("start", 0.0)))
             end = _ts(float(segment.get("end", 0.0)))
             speaker = str(segment.get("speaker", "SPEAKER_??"))

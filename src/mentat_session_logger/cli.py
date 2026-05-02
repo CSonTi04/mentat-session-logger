@@ -5,7 +5,10 @@ from pathlib import Path
 
 from mentat_session_logger.artifacts import ArtifactStore
 from mentat_session_logger.audio import AudioNormalizationStage, AudioPreprocessingStage
-from mentat_session_logger.campaign_memory import ApprovedMemoryApplyStage, MemoryUpdateProposalStage
+from mentat_session_logger.campaign_memory import (
+    ApprovedMemoryApplyStage,
+    MemoryUpdateProposalStage,
+)
 from mentat_session_logger.chunking import TranscriptChunkingStage
 from mentat_session_logger.classification import (
     ChunkSummarizationStage,
@@ -16,11 +19,15 @@ from mentat_session_logger.diarization import DiarizationStage
 from mentat_session_logger.environments import EnvironmentResolver
 from mentat_session_logger.llm import OllamaClient
 from mentat_session_logger.models import SessionContext
-from mentat_session_logger.pipeline import PipelineRunner, load_pipeline_config
+from mentat_session_logger.pipeline import PipelineRunner, PipelineStage, load_pipeline_config
 from mentat_session_logger.prompts import PromptRenderer
 from mentat_session_logger.transcript import GlossaryCorrectionStage, SpeakerMapApplicationStage
 from mentat_session_logger.transcription import StubAsrBackend, TranscriptionStage, WhisperXBackend
-from mentat_session_logger.voiceprints import SimpleEmbeddingBackend, SpeakerMatchingStage, VoiceprintService
+from mentat_session_logger.voiceprints import (
+    SimpleEmbeddingBackend,
+    SpeakerMatchingStage,
+    VoiceprintService,
+)
 
 
 def _workspace_root() -> Path:
@@ -132,7 +139,11 @@ def _transcription_stage() -> TranscriptionStage:
         return TranscriptionStage(backend=StubAsrBackend())
 
 
-def _stage_registry(workspace: Path, llm: OllamaClient, prompts: PromptRenderer):
+def _stage_registry(
+    workspace: Path,
+    llm: OllamaClient,
+    prompts: PromptRenderer,
+) -> dict[str, PipelineStage]:
     return {
         "prepare_audio": AudioPreprocessingStage(),
         "normalize_audio": AudioNormalizationStage(),

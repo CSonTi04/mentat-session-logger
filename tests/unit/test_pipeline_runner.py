@@ -4,7 +4,12 @@ import pytest
 
 from mentat_session_logger.artifacts import ArtifactStore
 from mentat_session_logger.models import ArtifactRef, EnvironmentConfig, SessionContext, StageResult
-from mentat_session_logger.pipeline import PipelineConfig, PipelineRunner, PipelineStageSpec
+from mentat_session_logger.pipeline import (
+    PipelineConfig,
+    PipelineError,
+    PipelineRunner,
+    PipelineStageSpec,
+)
 
 
 class FakeStage:
@@ -57,5 +62,5 @@ def test_pipeline_unknown_stage_raises(tmp_path: Path) -> None:
     ctx = _ctx(tmp_path)
     runner = PipelineRunner({})
     cfg = PipelineConfig("default", [PipelineStageSpec("missing")])
-    with pytest.raises(Exception):
+    with pytest.raises(PipelineError):
         runner.run(ctx, cfg)

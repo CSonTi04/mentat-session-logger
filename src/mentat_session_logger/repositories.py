@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 
 from mentat_session_logger.io import read_text, read_yaml, write_text, write_yaml
 
@@ -20,10 +21,10 @@ class CampaignMemoryRepository:
     def __init__(self, campaign_context_root: Path) -> None:
         self.root = campaign_context_root
 
-    def read_yaml(self, relative_path: str) -> dict:
+    def read_yaml(self, relative_path: str) -> dict[str, Any]:
         return read_yaml(self.root / relative_path)
 
-    def write_yaml(self, relative_path: str, payload: dict) -> None:
+    def write_yaml(self, relative_path: str, payload: dict[str, Any]) -> None:
         write_yaml(self.root / relative_path, payload)
 
     def append_markdown(self, relative_path: str, block: str) -> None:

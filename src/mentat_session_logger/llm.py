@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
-from typing import Protocol
+from typing import Any, Protocol, cast
 
 import requests
 
@@ -34,11 +34,11 @@ class OllamaClient:
         return result.strip()
 
 
-def parse_json_response(raw: str) -> dict:
+def parse_json_response(raw: str) -> dict[str, Any]:
     try:
         parsed = json.loads(raw)
     except json.JSONDecodeError as exc:
         raise ValueError(f"Invalid JSON from LLM: {exc}") from exc
     if not isinstance(parsed, dict):
         raise ValueError("LLM JSON must be an object")
-    return parsed
+    return cast(dict[str, Any], parsed)

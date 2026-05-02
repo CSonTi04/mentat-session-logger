@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from pathlib import Path
+from typing import Any
 
 from mentat_session_logger.artifacts import ArtifactStore
 from mentat_session_logger.io import read_json, read_text, write_json, write_text
@@ -55,7 +55,10 @@ class TopicClassificationStage:
             write_json(out, payload)
             outputs.append(ArtifactRef(out.stem, out))
 
-        return StageResult(input_artifacts=[ArtifactRef("chunks", artifacts.chunks_dir())], output_artifacts=outputs)
+        return StageResult(
+            input_artifacts=[ArtifactRef("chunks", artifacts.chunks_dir())],
+            output_artifacts=outputs,
+        )
 
 
 class ChunkSummarizationStage:
@@ -80,10 +83,15 @@ class ChunkSummarizationStage:
             write_text(out, summary.strip() + "\n")
             outputs.append(ArtifactRef(out.stem, out))
 
-        return StageResult(input_artifacts=[ArtifactRef("classifications", artifacts.session_root / "classifications")], output_artifacts=outputs)
+        return StageResult(
+            input_artifacts=[
+                ArtifactRef("classifications", artifacts.session_root / "classifications")
+            ],
+            output_artifacts=outputs,
+        )
 
     @staticmethod
-    def _fallback_summary(payload: dict) -> str:
+    def _fallback_summary(payload: dict[str, Any]) -> str:
         return (
             f"# Chunk Summary\n\n"
             f"- category: {payload.get('primary_category', 'AMBIGUOUS')}\n"
@@ -112,14 +120,31 @@ class FinalNotebookGenerationStage:
         full = artifacts.final_file("full_transcript.md")
         canon = artifacts.final_file("canon_delta.md")
 
-        write_text(notebook, f"# Session Notebook ({context.session_id})\n\n## TL;DR\n\nGenerated from chunk summaries.\n\n{summary_text}\n")
-        write_text(rules_meta, "# Rules and Meta\n\nExtract from chunk classifications where include_in_rules_meta=true.\n")
+        write_text(
+            notebook,
+            (
+                f"# Session Notebook ({context.session_id})\n\n"
+                f"## TL;DR\n\nGenerated from chunk summaries.\n\n{summary_text}\n"
+            ),
+        )
+        write_text(
+            rules_meta,
+            (
+                "# Rules and Meta\n\n"
+                "Extract from chunk classifications where include_in_rules_meta=true.\n"
+            ),
+        )
         write_text(diary, "# Table Diary\n\nOff-topic/social/logistics/technical extracts.\n")
         write_text(full, full_transcript)
-        write_text(canon, "# Canon Delta\n\n- new facts\n- updated facts\n- possible contradictions\n")
+        write_text(
+            canon,
+            "# Canon Delta\n\n- new facts\n- updated facts\n- possible contradictions\n",
+        )
 
         return StageResult(
-            input_artifacts=[ArtifactRef("chunk_summaries", artifacts.session_root / "chunk_summaries")],
+            input_artifacts=[
+                ArtifactRef("chunk_summaries", artifacts.session_root / "chunk_summaries")
+            ],
             output_artifacts=[
                 ArtifactRef("session_notebook", notebook),
                 ArtifactRef("rules_and_meta", rules_meta),

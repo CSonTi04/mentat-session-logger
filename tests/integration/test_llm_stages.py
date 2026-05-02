@@ -104,13 +104,15 @@ def test_glossary_correction_returns_transcript(
         prompt_renderer=prompt_renderer,
         workspace_root=workspace_root,
     )
-    result = stage.run(session_context, session_artifacts)
+    stage.run(session_context, session_artifacts)
 
     out_path = session_artifacts.transcript_file("diarized_named_corrected.md")
     assert out_path.exists(), "Corrected transcript file was not created"
     corrected = out_path.read_text(encoding="utf-8")
     # The output must still look like a diarized transcript
-    assert "[" in corrected and "]" in corrected, "Output does not look like a timestamped transcript"
+    assert "[" in corrected and "]" in corrected, (
+        "Output does not look like a timestamped transcript"
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -132,7 +134,7 @@ def test_topic_classification_produces_json(
         llm_client=ollama_client,
         prompt_renderer=prompt_renderer,
     )
-    result = stage.run(session_context, session_artifacts)
+    stage.run(session_context, session_artifacts)
 
     class_file = session_artifacts.classification_file("chunk_000.json")
     assert class_file.exists(), "Classification JSON was not created"
@@ -193,7 +195,7 @@ def test_chunk_summarization_produces_markdown(
         llm_client=ollama_client,
         prompt_renderer=prompt_renderer,
     )
-    result = stage.run(session_context, session_artifacts)
+    stage.run(session_context, session_artifacts)
 
     summary_file = session_artifacts.chunk_summary_file("chunk_000_summary.md")
     assert summary_file.exists(), "Summary Markdown file was not created"

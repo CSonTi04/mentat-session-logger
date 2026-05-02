@@ -36,7 +36,10 @@ class TranscriptChunkingStage:
         for idx, chunk in enumerate(chunks, start=1):
             name = f"chunk_{idx:03d}.md"
             path = artifacts.chunk_file(name)
-            body = f"# Chunk {idx:03d}\n\nstart: {chunk.start}\nend: {chunk.end}\n\n" + "\n".join(chunk.lines)
+            body = (
+                f"# Chunk {idx:03d}\n\nstart: {chunk.start}\nend: {chunk.end}\n\n"
+                + "\n".join(chunk.lines)
+            )
             write_text(path, body + "\n")
             output_artifacts.append(ArtifactRef(f"chunk_{idx:03d}", path))
 

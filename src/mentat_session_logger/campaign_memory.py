@@ -51,7 +51,9 @@ class ApprovedMemoryApplyStage:
 
         payload = read_yaml(proposal)
         if payload.get("approved") is not True:
-            raise PermissionError("Proposal is not approved. Set approved: true after human review.")
+            raise PermissionError(
+                "Proposal is not approved. Set approved: true after human review."
+            )
 
         campaign_root = context.env.campaign_context_dir
         approved_path = campaign_root / "canon_log" / "canon_approved.md"
@@ -81,7 +83,9 @@ class ApprovedMemoryApplyStage:
         timeline = campaign_root / "timeline.md"
         _append_markdown(timeline, f"- {context.session_id}: memory update applied")
 
-        session_summary_path = campaign_root / "previous_session_summaries" / f"{context.session_id}.md"
+        session_summary_path = (
+            campaign_root / "previous_session_summaries" / f"{context.session_id}.md"
+        )
         notebook = artifacts.final_file("session_notebook.md")
         summary_text = read_text(notebook) if notebook.exists() else f"# {context.session_id}\n"
         write_text(session_summary_path, summary_text)

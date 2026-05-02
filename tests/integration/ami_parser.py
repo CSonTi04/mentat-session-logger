@@ -8,9 +8,8 @@ Only the first ``max_seconds`` of audio are included to keep LLM tests fast.
 from __future__ import annotations
 
 import xml.etree.ElementTree as ET
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
-
 
 SPEAKERS = ("A", "B", "C", "D")
 NITE_NS = "http://nite.sourceforge.net/"
@@ -44,7 +43,6 @@ def _parse_words_xml(path: Path, speaker: str, max_seconds: float) -> list[WordT
         tag = elem.tag.split("}")[-1] if "}" in elem.tag else elem.tag
         if tag != "w":
             continue
-        start_attr = elem.get(f"{{{NITE_NS}}}id", "")  # fallback
         start = elem.get("starttime")
         end = elem.get("endtime")
         text = (elem.text or "").strip()

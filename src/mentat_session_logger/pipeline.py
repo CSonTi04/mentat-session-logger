@@ -1,14 +1,14 @@
 from __future__ import annotations
 
+import json
 from dataclasses import asdict
 from hashlib import sha256
 from pathlib import Path
-from typing import Protocol
+from typing import Any, Protocol, cast
 
 from mentat_session_logger.artifacts import ArtifactStore
 from mentat_session_logger.io import read_yaml, write_json
 from mentat_session_logger.models import (
-    EnvironmentConfig,
     PipelineConfig,
     PipelineStageSpec,
     SessionContext,
@@ -115,7 +115,7 @@ class PipelineRunner:
                     stage_result=result,
                     config=spec.config,
                 )
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 self.manifest_writer.write_failure(
                     artifacts=artifacts,
                     stage_name=stage.name,
@@ -132,9 +132,8 @@ class PipelineRunner:
         manifest = read_yaml(manifest_path) if manifest_path.suffix in {".yml", ".yaml"} else None
         if manifest is not None:
             return manifest.get("status") == "success"
-        import json
 
-        data = json.loads(manifest_path.read_text(encoding="utf-8"))
+        data = cast(dict[str, Any], json.loads(manifest_path.read_text(encoding="utf-8")))
         return data.get("status") == "success"
 
 

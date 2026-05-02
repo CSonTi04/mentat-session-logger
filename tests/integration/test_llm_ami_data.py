@@ -22,14 +22,13 @@ from pathlib import Path
 import pytest
 
 from mentat_session_logger.artifacts import ArtifactStore
-from mentat_session_logger.classification import ChunkSummarizationStage, TopicClassificationStage
 from mentat_session_logger.chunking import TranscriptChunkingStage
+from mentat_session_logger.classification import ChunkSummarizationStage, TopicClassificationStage
 from mentat_session_logger.io import write_text
 from mentat_session_logger.llm import OllamaClient
 from mentat_session_logger.models import SessionContext
 from mentat_session_logger.prompts import PromptRenderer
 from mentat_session_logger.transcript import GlossaryCorrectionStage
-
 from tests.integration.ami_parser import build_diarized_transcript
 
 # ---------------------------------------------------------------------------
@@ -100,11 +99,11 @@ def test_ami_parser_output_format(ami_transcript: str) -> None:
     """Every line from the parser must match diarized transcript format."""
     import re
 
-    LINE_RE = re.compile(r"^\[\d\d:\d\d:\d\d-\d\d:\d\d:\d\d\] Speaker_[A-D]: .+$")
-    lines = [l for l in ami_transcript.splitlines() if l.strip()]
+    line_re = re.compile(r"^\[\d\d:\d\d:\d\d-\d\d:\d\d:\d\d\] Speaker_[A-D]: .+$")
+    lines = [line for line in ami_transcript.splitlines() if line.strip()]
     assert len(lines) > 10, f"Too few transcript lines: {len(lines)}"
-    bad = [l for l in lines if not LINE_RE.match(l)]
-    assert not bad, f"Malformed lines:\n" + "\n".join(bad[:5])
+    bad = [line for line in lines if not line_re.match(line)]
+    assert not bad, "Malformed lines:\n" + "\n".join(bad[:5])
 
 
 # ---------------------------------------------------------------------------
@@ -155,7 +154,7 @@ def test_classify_and_summarize_ami_chunks(
     write_text(named, ami_transcript)
 
     # Chunk into ~5-minute windows
-    chunk_result = TranscriptChunkingStage(target_minutes=5).run(ami_context, ami_artifacts)
+    TranscriptChunkingStage(target_minutes=5).run(ami_context, ami_artifacts)
     chunk_files = sorted(ami_artifacts.chunks_dir().glob("chunk_*.md"))
     assert chunk_files, "No chunks produced from AMI transcript"
 
