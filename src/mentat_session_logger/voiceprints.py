@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Protocol
 
 import numpy as np
+from numpy.typing import NDArray
 
 from mentat_session_logger.artifacts import ArtifactStore
 from mentat_session_logger.io import read_json, read_yaml, write_yaml
@@ -17,7 +18,7 @@ from mentat_session_logger.models import (
 
 
 class SpeakerEmbeddingBackend(Protocol):
-    def embedding_from_audio(self, wav_path: Path) -> np.ndarray:
+    def embedding_from_audio(self, wav_path: Path) -> NDArray[np.float32]:
         ...
 
 
@@ -25,7 +26,7 @@ class SpeakerEmbeddingBackend(Protocol):
 class SimpleEmbeddingBackend:
     dimension: int = 32
 
-    def embedding_from_audio(self, wav_path: Path) -> np.ndarray:
+    def embedding_from_audio(self, wav_path: Path) -> NDArray[np.float32]:
         data = wav_path.read_bytes()
         if not data:
             return np.zeros(self.dimension, dtype=np.float32)
@@ -50,7 +51,7 @@ class VoiceprintService:
         for person_dir in sorted(voiceprints_dir.iterdir() if voiceprints_dir.exists() else []):
             if not person_dir.is_dir():
                 continue
-            vectors: list[np.ndarray] = []
+            vectors: list[NDArray[np.float32]] = []
             for wav in sorted(person_dir.glob("*.wav")):
                 vectors.append(self.backend.embedding_from_audio(wav))
             if not vectors:
@@ -88,7 +89,7 @@ class SpeakerMatchingStage:
         profiles_payload = read_yaml(profile_cfg) if profile_cfg.exists() else {"profiles": {}}
         profiles = profiles_payload.get("profiles", {})
 
-        loaded_profiles: dict[str, np.ndarray] = {}
+        loaded_profiles: dict[str, NDArray[np.float32]] = {}
         for person, rel in profiles.items():
             path = context.env.root / str(rel)
             if path.exists():
@@ -135,7 +136,7 @@ class SpeakerMatchingStage:
         )
 
 
-def _cosine_similarity(a: np.ndarray, b: np.ndarray) -> float:
+def _cosine_similarity(a: NDArray[np.float32], b: NDArray[np.float32]) -> float:
     denom = float(np.linalg.norm(a) * np.linalg.norm(b))
     if denom == 0:
         return 0.0
