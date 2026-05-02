@@ -1,4 +1,28 @@
 Classify this transcript chunk.
-Return strict JSON only.
-Categories: IC_GAMEPLAY, OOC_RULES, OOC_STRATEGY, LORE_OR_RECAP, TABLE_SOCIAL, LOGISTICS, TECHNICAL_AUDIO, AMBIGUOUS.
+
+Return one strict JSON object only. Do not include Markdown, prose, explanations, or code fences.
+
+Allowed primary_category values:
+IC_GAMEPLAY, OOC_RULES, OOC_STRATEGY, LORE_OR_RECAP, TABLE_SOCIAL, LOGISTICS, TECHNICAL_AUDIO, AMBIGUOUS.
+
+Use this exact schema:
+{
+  "start": "HH:MM:SS",
+  "end": "HH:MM:SS",
+  "primary_category": "AMBIGUOUS",
+  "secondary_categories": [],
+  "campaign_relevant": true,
+  "include_in_campaign_notebook": true,
+  "include_in_table_diary": false,
+  "include_in_rules_meta": false,
+  "summary": "one or two sentences",
+  "notable_quotes": [],
+  "canon_facts": [],
+  "rules_notes": [],
+  "off_topic_reason": ""
+}
+
 Do not classify all OOC as off-topic.
+
+Transcript chunk:
+{{CHUNK}}

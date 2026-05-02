@@ -10,6 +10,14 @@ from mentat_session_logger.models import SessionContext
 from mentat_session_logger.transcription import StubAsrBackend, TranscriptionStage, WhisperXBackend
 
 
+def _preferred_torch_device() -> str:
+    try:
+        import torch
+    except ImportError:
+        return "cpu"
+    return "cuda" if torch.cuda.is_available() else "cpu"
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--env", required=True)
@@ -36,7 +44,7 @@ def main() -> int:
         prepared_target.write_bytes(source.read_bytes())
 
     try:
-        backend = WhisperXBackend()
+        backend = WhisperXBackend(device=_preferred_torch_device())
     except Exception:
         backend = StubAsrBackend()
 

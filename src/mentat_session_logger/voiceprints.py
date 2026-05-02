@@ -103,7 +103,11 @@ class SpeakerMatchingStage:
         suggestions: dict[str, SpeakerMatchSuggestion] = {}
         for speaker_id, texts in speakers.items():
             pseudo = (
-                context.env.root / "sessions" / context.session_id / "raw" / f"{speaker_id}.txt"
+                context.env.root
+                / "sessions"
+                / context.session_id
+                / "raw"
+                / f"{_safe_filename(speaker_id)}.txt"
             )
             pseudo.write_text("\n".join(texts), encoding="utf-8")
             speaker_embedding = self.backend.embedding_from_audio(pseudo)
@@ -141,3 +145,7 @@ def _cosine_similarity(a: NDArray[np.float32], b: NDArray[np.float32]) -> float:
     if denom == 0:
         return 0.0
     return float(np.dot(a, b) / denom)
+
+
+def _safe_filename(value: str) -> str:
+    return "".join(char if char.isalnum() or char in {"-", "_"} else "_" for char in value)

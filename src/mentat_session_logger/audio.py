@@ -25,10 +25,13 @@ class AudioCommandRunner:
             "-y",
             "-i",
             str(input_audio),
+            "-vn",
             "-ac",
             "1",
             "-ar",
             "16000",
+            "-c:a",
+            "pcm_s16le",
             str(output_wav),
         ]
         subprocess.run(cmd, check=True, capture_output=True, text=True)
@@ -42,6 +45,12 @@ class AudioCommandRunner:
             str(input_wav),
             "-af",
             "loudnorm",
+            "-ac",
+            "1",
+            "-ar",
+            "16000",
+            "-c:a",
+            "pcm_s16le",
             str(output_wav),
         ]
         subprocess.run(cmd, check=True, capture_output=True, text=True)

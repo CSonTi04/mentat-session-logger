@@ -179,20 +179,18 @@ envs/local/
 
 Switch environment with `--env`, for example `default`, `local`, `dune_home_campaign`, `test_fixture`.
 
-## Demo Datasets (Clickable)
+## Demo Datasets
 
-Recommended laptop pilot (multi-speaker + transcripts):
+Recommended pilot data with mixed audio and manual transcript annotations:
 
-- AMI meeting mixed audio (ES2008a):
-  [https://groups.inf.ed.ac.uk/ami/AMICorpusMirror/amicorpus/ES2008a/audio/ES2008a.Mix-Headset.wav](https://groups.inf.ed.ac.uk/ami/AMICorpusMirror/amicorpus/ES2008a/audio/ES2008a.Mix-Headset.wav)
-- AMI manual transcript annotations (zip):
-  [https://groups.inf.ed.ac.uk/ami/AMICorpusAnnotations/ami_public_manual_1.6.2.zip](https://groups.inf.ed.ac.uk/ami/AMICorpusAnnotations/ami_public_manual_1.6.2.zip)
+- [AMI ES2008a mixed headset WAV](https://groups.inf.ed.ac.uk/ami/AMICorpusMirror/amicorpus/ES2008a/audio/ES2008a.Mix-Headset.wav)
+- [AMI manual transcript annotations zip](https://groups.inf.ed.ac.uk/ami/AMICorpusAnnotations/ami_public_manual_1.6.2.zip)
 
 Other multi-speaker corpora (larger):
 
-- SBCSAE (OpenSLR SLR155): [https://openslr.org/155/](https://openslr.org/155/)
-- CHiME-6 (OpenSLR SLR150): [https://openslr.org/150/](https://openslr.org/150/)
-- AMI overview and official portal: [https://groups.inf.ed.ac.uk/ami/corpus/](https://groups.inf.ed.ac.uk/ami/corpus/)
+- [SBCSAE (OpenSLR SLR155)](https://openslr.org/155/)
+- [CHiME-6 (OpenSLR SLR150)](https://openslr.org/150/)
+- [AMI overview and official portal](https://groups.inf.ed.ac.uk/ami/corpus/)
 
 ## Laptop Pilot Quickstart (No LLM)
 
@@ -204,23 +202,23 @@ This path is optimized for your laptop and skips LLM stages.
 python -m mentat_session_logger init-env --name local
 ```
 
-1. Download pilot audio into:
+2. Download pilot audio into:
 
 `envs/local/sessions/session_ami_es2008a/input/session_ami_es2008a_raw.wav`
 
-1. Prepare audio:
+3. Prepare audio:
 
 ```bash
 python scripts/01_prepare_audio.py --env local --session session_ami_es2008a --input envs/local/sessions/session_ami_es2008a/input/session_ami_es2008a_raw.wav --normalize
 ```
 
-1. Run no-LLM integrated pipeline:
+4. Run no-LLM integrated pipeline:
 
 ```bash
 python -m mentat_session_logger run --env local --session session_ami_es2008a --pipeline pilot_no_llm
 ```
 
-1. Inspect outputs under:
+5. Inspect outputs under:
 
 `envs/local/sessions/session_ami_es2008a/`
 
@@ -243,6 +241,38 @@ After installing, verify Ollama is running:
 ollama list
 ```
 
+#### Docker option
+
+If Ollama is running in Docker instead of being installed directly on the host,
+publish the container's port `11434` to localhost so the app can use the same
+Ollama-compatible endpoint:
+
+```bash
+docker run -d --name ollama -p 11434:11434 -v ollama:/root/.ollama ollama/ollama
+```
+
+With an NVIDIA GPU, use Docker's GPU support:
+
+```bash
+docker run -d --gpus all --name ollama -p 11434:11434 -v ollama:/root/.ollama ollama/ollama
+```
+
+Check the container:
+
+```bash
+docker ps
+docker exec -it ollama ollama list
+```
+
+The default environment config already points at the host-mapped Docker endpoint:
+
+```yaml
+llm:
+  provider: ollama
+  endpoint: http://localhost:11434/api/generate
+  model: llama3.1:8b
+```
+
 ### 2. Pull a model
 
 Choose one based on your hardware. The default config uses `llama3.1:8b`.
@@ -259,10 +289,22 @@ Run in your terminal:
 ollama pull llama3.1:8b
 ```
 
+If Ollama is running in Docker:
+
+```bash
+docker exec -it ollama ollama pull llama3.1:8b
+```
+
 Confirm the model loaded:
 
 ```bash
 ollama run llama3.1:8b "Respond with one word: ready"
+```
+
+Or through Docker:
+
+```bash
+docker exec -it ollama ollama run llama3.1:8b "Respond with one word: ready"
 ```
 
 If your machine is RAM-constrained, swap the model name in `configs/default.yml`:
@@ -283,6 +325,11 @@ pip install whisperx pyannote.audio speechbrain
 > WhisperX and pyannote.audio require a GPU or will run slowly on CPU.
 > For a CPU-only pilot, use the No-LLM path for transcription and diarization,
 > then re-run only the LLM stages once you have a transcript.
+>
+> The Ollama Docker container only provides the LLM endpoint used by glossary
+> correction, classification, and summarization. Whisper/WhisperX is separate:
+> install it in the Python environment as shown above, run the whole app in a
+> container that includes WhisperX, or add a separate ASR service/container.
 
 ### 4. Create local environment
 
@@ -376,77 +423,77 @@ flowchart TD
 python -m mentat_session_logger init-env --name local
 ```
 
-1. Put raw audio here:
+2. Put raw audio here:
 
 `envs/local/sessions/session_012/input/session_012_raw.wav`
 
-1. Prepare audio:
+3. Prepare audio:
 
 ```bash
 python scripts/01_prepare_audio.py --env local --session session_012 --input envs/local/sessions/session_012/input/session_012_raw.wav --normalize
 ```
 
-1. Transcribe:
+4. Transcribe:
 
 ```bash
 python scripts/02_transcribe_whisperx.py --env local --session session_012 --audio envs/local/sessions/session_012/audio/session_012_16k.wav --language hu --min-speakers 4 --max-speakers 8
 ```
 
-1. Enroll voiceprints:
+5. Enroll voiceprints:
 
 ```bash
 python scripts/03_enroll_voiceprints.py --env local
 ```
 
-1. Match speakers:
+6. Match speakers:
 
 ```bash
 python scripts/04_match_speakers.py --env local --session session_012
 ```
 
-1. Review/create:
+7. Review/create:
 
 `envs/local/sessions/session_012/maps/speaker_map.yml`
 
-1. Apply map:
+8. Apply map:
 
 ```bash
 python scripts/05_apply_speaker_map.py --env local --session session_012
 ```
 
-1. Correct glossary:
+9. Correct glossary:
 
 ```bash
 python scripts/06_glossary_correct.py --env local --session session_012
 ```
 
-1. Chunk:
+10. Chunk:
 
 ```bash
 python scripts/07_chunk_transcript.py --env local --session session_012
 ```
 
-1. Classify:
+11. Classify:
 
 ```bash
 python scripts/08_classify_chunks.py --env local --session session_012
 ```
 
-1. Summarize:
+12. Summarize:
 
 ```bash
 python scripts/09_summarize_chunks.py --env local --session session_012
 ```
 
-1. Final outputs:
+13. Final outputs:
 
 ```bash
 python scripts/10_generate_final_outputs.py --env local --session session_012
 ```
 
-1. Review memory proposal manually.
+14. Review memory proposal manually.
 
-1. Apply approved memory update:
+15. Apply approved memory update:
 
 ```bash
 python scripts/11_apply_approved_memory_update.py --env local --session session_012
@@ -527,7 +574,7 @@ model has not been pulled.
 ### Prerequisites
 
 1. Install and start Ollama (see [Laptop Pilot Quickstart (With LLM via Ollama)](#laptop-pilot-quickstart-with-llm-via-ollama)).
-1. Pull the model for your hardware:
+2. Pull the model for your hardware:
 
 ```bash
 # Laptop
@@ -537,11 +584,11 @@ ollama pull phi3:mini
 ollama pull llama3.1:8b
 ```
 
-1. Download AMI pilot data (required for real-data tests):
+3. Download AMI pilot data (required for real-data tests):
 
 `envs/local/sessions/session_ami_es2008a/raw/ami_public_manual_1.6.2/words/`
 
-See [Demo Datasets](#demo-datasets-clickable) for the download link.
+See [Demo Datasets](#demo-datasets) for the download link.
 
 ### Run on a laptop (`phi3:mini`)
 
@@ -594,9 +641,9 @@ flowchart LR
 ## Adding a New Pipeline Stage
 
 1. Implement a stage class with `name` and `run(context, artifacts)`.
-1. Register it in the CLI stage registry.
-1. Add it to `configs/pipelines/default.yml`.
-1. Add unit tests with fakes/mocks.
+2. Register it in the CLI stage registry.
+3. Add it to `configs/pipelines/default.yml`.
+4. Add unit tests with fakes/mocks.
 
 ## Swapping Backends
 

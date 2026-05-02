@@ -84,7 +84,7 @@ class GlossaryCorrectionStage:
             corrected = self.llm_client.generate(
                 prompt + "\n\nGlossary:\n" + glossary + "\n\nTranscript:\n" + transcript
             )
-            if "[" not in corrected or "]" not in corrected:
+            if not _has_same_transcript_shape(transcript, corrected):
                 corrected = transcript
         except Exception:
             corrected = transcript
@@ -95,3 +95,19 @@ class GlossaryCorrectionStage:
             input_artifacts=[ArtifactRef("diarized_named", source)],
             output_artifacts=[ArtifactRef("diarized_named_corrected", out_path)],
         )
+
+
+def _has_same_transcript_shape(original: str, corrected: str) -> bool:
+    original_lines = [line for line in original.splitlines() if line.strip()]
+    corrected_lines = [line for line in corrected.splitlines() if line.strip()]
+    if len(original_lines) != len(corrected_lines):
+        return False
+
+    for original_line, corrected_line in zip(original_lines, corrected_lines, strict=True):
+        original_match = LINE_RE.match(original_line)
+        corrected_match = LINE_RE.match(corrected_line)
+        if original_match is None or corrected_match is None:
+            return False
+        if original_match.groups()[:3] != corrected_match.groups()[:3]:
+            return False
+    return True

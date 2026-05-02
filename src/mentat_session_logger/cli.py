@@ -133,10 +133,18 @@ def main(argv: list[str] | None = None) -> int:
 
 def _transcription_stage() -> TranscriptionStage:
     try:
-        backend = WhisperXBackend()
+        backend = WhisperXBackend(device=_preferred_torch_device())
         return TranscriptionStage(backend=backend)
     except Exception:
         return TranscriptionStage(backend=StubAsrBackend())
+
+
+def _preferred_torch_device() -> str:
+    try:
+        import torch
+    except ImportError:
+        return "cpu"
+    return "cuda" if torch.cuda.is_available() else "cpu"
 
 
 def _stage_registry(

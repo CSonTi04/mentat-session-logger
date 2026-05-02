@@ -43,9 +43,12 @@ class TopicClassificationStage:
             prompt = self.prompt_renderer.render("topic_classifier_prompt.txt", {"CHUNK": content})
             raw_output = ""
             try:
-                raw_output = self.llm_client.generate(prompt + "\n\nChunk:\n" + content)
+                raw_output = self.llm_client.generate(prompt)
                 parsed = parse_json_response(raw_output)
                 payload = {**DEFAULT_CLASSIFICATION, **parsed}
+                failed = artifacts.classification_file(f"{chunk.stem}_failed_llm_output.txt")
+                if failed.exists():
+                    failed.unlink()
             except Exception:
                 payload = DEFAULT_CLASSIFICATION.copy()
                 failed = artifacts.classification_file(f"{chunk.stem}_failed_llm_output.txt")
@@ -73,7 +76,15 @@ class ChunkSummarizationStage:
         outputs: list[ArtifactRef] = []
         for class_file in class_files:
             payload = read_json(class_file)
-            prompt = self.prompt_renderer.render("chunk_summary_prompt.txt", {"JSON": str(payload)})
+            chunk_path = artifacts.chunk_file(f"{class_file.stem}.md")
+            chunk_text = read_text(chunk_path) if chunk_path.exists() else ""
+            prompt = self.prompt_renderer.render(
+                "chunk_summary_prompt.txt",
+                {
+                    "JSON": str(payload),
+                    "CHUNK": chunk_text,
+                },
+            )
             try:
                 summary = self.llm_client.generate(prompt)
             except Exception:

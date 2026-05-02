@@ -38,7 +38,19 @@ def parse_json_response(raw: str) -> dict[str, Any]:
     try:
         parsed = json.loads(raw)
     except json.JSONDecodeError as exc:
-        raise ValueError(f"Invalid JSON from LLM: {exc}") from exc
+        parsed = _parse_embedded_json_object(raw, exc)
     if not isinstance(parsed, dict):
         raise ValueError("LLM JSON must be an object")
     return cast(dict[str, Any], parsed)
+
+
+def _parse_embedded_json_object(raw: str, original_error: json.JSONDecodeError) -> object:
+    decoder = json.JSONDecoder()
+    start = raw.find("{")
+    while start != -1:
+        try:
+            parsed, _ = decoder.raw_decode(raw[start:])
+            return parsed
+        except json.JSONDecodeError:
+            start = raw.find("{", start + 1)
+    raise ValueError(f"Invalid JSON from LLM: {original_error}") from original_error

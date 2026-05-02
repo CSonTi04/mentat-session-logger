@@ -1,2 +1,17 @@
-Summarize this transcript chunk for campaign operations.
-Include: category, short summary, canon facts, character actions, NPCs, rules/meta, off-topic notes, uncertainty notes.
+Summarize this classified transcript chunk for campaign operations.
+
+Use concise Markdown with these sections:
+- Category
+- Short Summary
+- Canon Facts
+- Character Actions
+- NPCs
+- Rules/Meta
+- Off-Topic Notes
+- Uncertainty Notes
+
+Classification JSON:
+{{JSON}}
+
+Transcript chunk:
+{{CHUNK}}
