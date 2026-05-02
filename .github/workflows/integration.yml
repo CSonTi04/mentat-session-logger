@@ -1,0 +1,63 @@
+name: Integration tests (Ollama)
+
+on:
+  workflow_dispatch:
+    inputs:
+      llm_profile:
+        description: "LLM profile to use"
+        required: true
+        default: laptop
+        type: choice
+        options:
+          - laptop
+          - rig
+  schedule:
+    # Runs every Monday at 03:00 UTC on the laptop profile
+    - cron: "0 3 * * 1"
+
+jobs:
+  integration-tests:
+    name: Integration tests (${{ github.event.inputs.llm_profile || 'laptop' }} profile)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install package and dev dependencies
+        run: pip install -e ".[dev]"
+
+      - name: Install Ollama
+        run: |
+          curl -fsSL https://ollama.com/install.sh | sh
+
+      - name: Start Ollama server
+        run: ollama serve &
+
+      - name: Wait for Ollama to be ready
+        run: |
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:11434/api/tags && break
+            echo "Waiting for Ollama... ($i/30)"
+            sleep 2
+          done
+
+      - name: Pull model for selected profile
+        run: |
+          PROFILE="${{ github.event.inputs.llm_profile || 'laptop' }}"
+          if [ "$PROFILE" = "laptop" ]; then
+            ollama pull phi3:mini
+          else
+            ollama pull llama3.1:8b
+          fi
+
+      - name: Run integration tests
+        run: |
+          python -m pytest tests/integration/ -m integration -v --tb=short \
+            --llm-profile "${{ github.event.inputs.llm_profile || 'laptop' }}"
+        timeout-minutes: 30
