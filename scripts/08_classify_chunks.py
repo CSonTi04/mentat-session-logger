@@ -1,0 +1,34 @@
+from __future__ import annotations
+
+import argparse
+from pathlib import Path
+
+from mentat_session_logger.artifacts import ArtifactStore
+from mentat_session_logger.classification import TopicClassificationStage
+from mentat_session_logger.environments import EnvironmentResolver
+from mentat_session_logger.llm import OllamaClient
+from mentat_session_logger.models import SessionContext
+from mentat_session_logger.prompts import PromptRenderer
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--env", required=True)
+    parser.add_argument("--session", required=True)
+    args = parser.parse_args()
+
+    workspace = Path.cwd()
+    env = EnvironmentResolver(workspace).resolve(args.env)
+    context = SessionContext(env=env, session_id=args.session)
+    artifacts = ArtifactStore(env.root, args.session)
+    artifacts.ensure_session_dirs()
+
+    llm = OllamaClient(endpoint=env.llm_endpoint, model=env.llm_model)
+    prompts = PromptRenderer(workspace / "prompts")
+    TopicClassificationStage(llm, prompts).run(context, artifacts)
+    print(f"Wrote classifications in: {artifacts.session_root / 'classifications'}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

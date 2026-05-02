@@ -1,0 +1,17 @@
+default_pipeline: default
+output_language: hu
+asr:
+  backend: whisperx
+  model: large-v3
+  language: hu
+  min_speakers: 4
+  max_speakers: 8
+llm:
+  backend: ollama
+  endpoint: http://localhost:11434/api/generate
+  model: llama3.1:8b
+speaker_matching:
+  unknown_threshold: 0.65
+chunking:
+  target_minutes: 10
+  overlap_seconds: 20

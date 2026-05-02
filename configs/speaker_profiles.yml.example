@@ -1,0 +1,3 @@
+profiles:
+  GM: profiles/gm.npy
+  Andras: profiles/andras.npy

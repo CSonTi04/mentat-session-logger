@@ -1,0 +1,3 @@
+Generate a memory_update_proposal.yml draft.
+Never auto-approve canon.
+Include confidence and source times.

@@ -1,0 +1,4 @@
+Classify this transcript chunk.
+Return strict JSON only.
+Categories: IC_GAMEPLAY, OOC_RULES, OOC_STRATEGY, LORE_OR_RECAP, TABLE_SOCIAL, LOGISTICS, TECHNICAL_AUDIO, AMBIGUOUS.
+Do not classify all OOC as off-topic.

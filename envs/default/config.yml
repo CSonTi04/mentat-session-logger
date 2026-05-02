@@ -1,0 +1,16 @@
+name: default
+paths:
+  campaign_context: campaign_context
+  voiceprints: voiceprints
+  sessions: sessions
+  profiles: profiles
+defaults:
+  pipeline: default
+  output_language: hu
+  asr_language: hu
+  min_speakers: 4
+  max_speakers: 8
+llm:
+  provider: ollama
+  endpoint: http://localhost:11434/api/generate
+  model: llama3.1:8b

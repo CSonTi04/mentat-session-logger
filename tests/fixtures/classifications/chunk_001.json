@@ -1,0 +1,15 @@
+{
+  "start": "00:00:00",
+  "end": "00:10:00",
+  "primary_category": "IC_GAMEPLAY",
+  "secondary_categories": ["LORE_OR_RECAP"],
+  "campaign_relevant": true,
+  "include_in_campaign_notebook": true,
+  "include_in_table_diary": false,
+  "include_in_rules_meta": false,
+  "summary": "Political negotiation in the shipyard scene.",
+  "notable_quotes": ["A ledger tul tiszta."],
+  "canon_facts": ["The ledger appears suspicious."],
+  "rules_notes": [],
+  "off_topic_reason": ""
+}

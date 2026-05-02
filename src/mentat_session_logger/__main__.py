@@ -1,0 +1,5 @@
+from mentat_session_logger.cli import main
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

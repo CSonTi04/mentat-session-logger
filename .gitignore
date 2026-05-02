@@ -216,3 +216,43 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# mentat-session-logger private data
+envs/*
+!envs/default/
+!envs/default/**
+envs/default/sessions/*
+!envs/default/sessions/.gitkeep
+envs/default/voiceprints/*
+!envs/default/voiceprints/.gitkeep
+envs/default/profiles/*
+!envs/default/profiles/.gitkeep
+envs/default/campaign_context/*
+!envs/default/campaign_context/.gitkeep
+!envs/default/campaign_context/**/
+!envs/default/campaign_context/**/.gitkeep
+!envs/default/campaign_context/campaign_bible.md
+!envs/default/campaign_context/glossary.yml
+!envs/default/campaign_context/player_characters.yml
+!envs/default/campaign_context/known_npcs.yml
+!envs/default/campaign_context/factions.yml
+!envs/default/campaign_context/locations.yml
+!envs/default/campaign_context/house_assets.yml
+!envs/default/campaign_context/unresolved_threads.yml
+!envs/default/campaign_context/timeline.md
+!envs/default/campaign_context/canon_log/canon_approved.md
+!envs/default/campaign_context/canon_log/canon_uncertain.md
+!envs/default/campaign_context/canon_log/contradictions.md
+
+sessions/
+voiceprints/
+profiles/
+campaign_context/
+*.wav
+*.mp3
+*.flac
+*.m4a
+*.npy
+*.pt
+*.onnx
+*.gguf

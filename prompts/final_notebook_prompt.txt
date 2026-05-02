@@ -1,0 +1,2 @@
+Generate final session outputs from chunk classifications and summaries.
+Produce campaign notebook content, rules/meta notes, table diary, and canon delta.

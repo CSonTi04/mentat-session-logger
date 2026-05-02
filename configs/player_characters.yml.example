@@ -1,0 +1,16 @@
+players:
+  Andras:
+    main_character: Alejandro Azul Atreides
+    role: Treasurer / Mentat-adjacent finance character
+    aliases:
+      - Alejandro
+      - treasurer
+      - Mentat
+    voiceprint_profile: profiles/andras.npy
+
+  GM:
+    role: Game Master
+    aliases:
+      - meselo
+      - narrator
+    voiceprint_profile: profiles/gm.npy

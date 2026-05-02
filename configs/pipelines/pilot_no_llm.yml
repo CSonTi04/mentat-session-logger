@@ -1,0 +1,19 @@
+pipeline:
+  - stage: prepare_audio
+    enabled: true
+  - stage: normalize_audio
+    enabled: true
+  - stage: transcribe
+    enabled: true
+  - stage: diarize
+    enabled: true
+  - stage: match_speakers
+    enabled: true
+  - stage: apply_speaker_map
+    enabled: true
+  - stage: chunk_transcript
+    enabled: true
+  - stage: generate_final_outputs
+    enabled: true
+  - stage: propose_memory_update
+    enabled: true

@@ -1,0 +1,59 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mentat-session-logger"
+version = "0.1.0"
+description = "Local-first RPG session transcriber that turns table audio into speaker-labeled transcripts, campaign notes, and reviewable canon updates."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+authors = [{ name = "mentat-session-logger contributors" }]
+dependencies = [
+  "PyYAML>=6.0",
+  "requests>=2.32",
+  "numpy>=1.26",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.2",
+  "ruff>=0.6",
+  "mypy>=1.10",
+  "types-PyYAML>=6.0.12",
+  "types-requests>=2.32.0.20240712",
+]
+
+[project.scripts]
+mentat-session-logger = "mentat_session_logger.cli:main"
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "N", "RUF"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "integration: marks tests that require a running Ollama instance (deselect with -m 'not integration')",
+    "laptop: marks integration tests scoped to the laptop profile (phi3:mini)",
+    "rig: marks integration tests scoped to the full-rig profile (llama3.1:8b)",
+]
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+warn_return_any = true
+warn_unreachable = true
+mypy_path = "src"

@@ -1,0 +1,2 @@
+Summarize this transcript chunk for campaign operations.
+Include: category, short summary, canon facts, character actions, NPCs, rules/meta, off-topic notes, uncertainty notes.
