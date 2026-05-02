@@ -256,3 +256,6 @@ campaign_context/
 *.pt
 *.onnx
 *.gguf
+
+# local progress tracking
+TODO.local.md
