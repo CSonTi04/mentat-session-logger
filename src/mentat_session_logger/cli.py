@@ -141,7 +141,7 @@ def _transcription_stage() -> TranscriptionStage:
 
 def _preferred_torch_device() -> str:
     try:
-        import torch
+        import torch  # type: ignore[import-not-found,unused-ignore]
     except ImportError:
         return "cpu"
     return "cuda" if torch.cuda.is_available() else "cpu"
