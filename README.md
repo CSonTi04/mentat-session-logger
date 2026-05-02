@@ -565,6 +565,22 @@ ruff format .
 mypy src
 ```
 
+## Local E2E Testing Modes
+
+Use both of these locally:
+
+1. Fast mocked E2E (no Ollama / WhisperX / torch required):
+
+```bash
+pytest tests/unit/test_local_e2e_pipeline_with_mocks.py -q
+```
+
+2. Real dependency-backed integration/E2E:
+
+```bash
+pytest tests/integration/ -m integration --llm-profile laptop -v
+```
+
 ## Integration Tests (LLM via Ollama)
 
 Integration tests exercise the LLM pipeline stages against both synthetic chunks and real
