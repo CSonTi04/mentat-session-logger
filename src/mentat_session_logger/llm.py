@@ -1,22 +1,22 @@
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass
+import os
+from dataclasses import dataclass, field
 from typing import Any, Protocol, cast
 
 import requests
 
 
 class LlmClient(Protocol):
-    def generate(self, prompt: str) -> str:
-        ...
+    def generate(self, prompt: str) -> str: ...
 
 
 @dataclass
 class OllamaClient:
     endpoint: str
     model: str
-    timeout_seconds: int = 120
+    timeout_seconds: int = field(default_factory=lambda: int(os.getenv("MSL_LLM_TIMEOUT", "120")))
 
     def generate(self, prompt: str) -> str:
         response = requests.post(

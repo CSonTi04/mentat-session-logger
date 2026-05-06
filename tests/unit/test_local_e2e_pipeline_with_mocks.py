@@ -24,6 +24,8 @@ from mentat_session_logger.voiceprints import SpeakerMatchingStage
 
 
 class _FakeAudioRunner:
+    ffmpeg_bin: str = "fake-ffmpeg"
+
     def validate(self) -> None:
         return None
 

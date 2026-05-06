@@ -17,7 +17,9 @@ class AudioCommandRunner:
 
     def validate(self) -> None:
         if shutil.which(self.ffmpeg_bin) is None:
-            raise FileNotFoundError("ffmpeg is required but not found in PATH")
+            raise FileNotFoundError(
+                f"{self.ffmpeg_bin!r} not found; install ffmpeg or set MSL_FFMPEG_BIN"
+            )
 
     def to_mono_16k(self, input_audio: Path, output_wav: Path) -> None:
         ensure_dir(output_wav.parent)
@@ -74,7 +76,7 @@ class AudioPreprocessingStage:
         return StageResult(
             input_artifacts=[ArtifactRef("input_audio", input_audio)],
             output_artifacts=[ArtifactRef("prepared_audio", output_wav)],
-            metadata={"ffmpeg": getattr(self.runner, "ffmpeg_bin", "custom-runner")},
+            metadata={"ffmpeg": self.runner.ffmpeg_bin},
         )
 
 

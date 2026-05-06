@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 from collections import Counter
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Protocol, cast
 
@@ -19,13 +19,12 @@ class AsrBackend(Protocol):
         model_name: str,
         min_speakers: int,
         max_speakers: int,
-    ) -> dict[str, Any]:
-        ...
+    ) -> dict[str, Any]: ...
 
 
 @dataclass
 class WhisperXBackend:
-    device: str = "cpu"
+    device: str = field(default_factory=lambda: os.getenv("MSL_TORCH_DEVICE", "cpu"))
 
     def transcribe(
         self,

@@ -27,6 +27,10 @@ def apply_env_overrides(cfg: EnvironmentConfig) -> EnvironmentConfig:
     that is not set (or is set to an empty string) leaves the corresponding field
     unchanged.
 
+    .. note::
+        ``MSL_FFMPEG_BIN`` is *not* handled here.  It is consumed directly by
+        :class:`~mentat_session_logger.audio.AudioCommandRunner` at instantiation time.
+
     Supported variables
     -------------------
     ``MSL_LLM_PROVIDER``
