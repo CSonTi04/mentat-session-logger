@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import argparse
+import logging
+import sys
 from pathlib import Path
 
 from mentat_session_logger.artifacts import ArtifactStore
@@ -8,6 +10,8 @@ from mentat_session_logger.diarization import DiarizationStage
 from mentat_session_logger.environments import EnvironmentResolver
 from mentat_session_logger.models import SessionContext
 from mentat_session_logger.transcription import StubAsrBackend, TranscriptionStage, WhisperXBackend
+
+logger = logging.getLogger(__name__)
 
 
 def _preferred_torch_device() -> str:
@@ -19,6 +23,11 @@ def _preferred_torch_device() -> str:
 
 
 def main() -> int:
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s %(levelname)s %(message)s",
+        stream=sys.stdout,
+    )
     parser = argparse.ArgumentParser()
     parser.add_argument("--env", required=True)
     parser.add_argument("--session", required=True)
@@ -52,7 +61,7 @@ def main() -> int:
     context = SessionContext(env=env, session_id=args.session)
     stage.run(context, artifacts)
     DiarizationStage().run(context, artifacts)
-    print("Wrote whisperx_output.json, transcript_raw.txt, diarized_raw.md, diarization.json")
+    logger.info("Wrote whisperx_output.json, transcript_raw.txt, diarized_raw.md, diarization.json")
     return 0
 
 

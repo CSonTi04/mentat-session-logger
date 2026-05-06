@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import argparse
+import logging
+import sys
 from pathlib import Path
 
 from mentat_session_logger.artifacts import ArtifactStore
@@ -8,8 +10,15 @@ from mentat_session_logger.environments import EnvironmentResolver
 from mentat_session_logger.models import SessionContext
 from mentat_session_logger.transcript import SpeakerMapApplicationStage
 
+logger = logging.getLogger(__name__)
+
 
 def main() -> int:
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s %(levelname)s %(message)s",
+        stream=sys.stdout,
+    )
     parser = argparse.ArgumentParser()
     parser.add_argument("--env", required=True)
     parser.add_argument("--session", required=True)
@@ -20,7 +29,7 @@ def main() -> int:
     artifacts = ArtifactStore(env.root, args.session)
     artifacts.ensure_session_dirs()
     SpeakerMapApplicationStage().run(context, artifacts)
-    print(f"Wrote: {artifacts.transcript_file('diarized_named.md')}")
+    logger.info("Wrote: %s", artifacts.transcript_file("diarized_named.md"))
     return 0
 
 

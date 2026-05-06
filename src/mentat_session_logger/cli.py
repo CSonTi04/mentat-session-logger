@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import argparse
+import logging
+import sys
 from pathlib import Path
 
 from mentat_session_logger.artifacts import ArtifactStore
@@ -28,6 +30,8 @@ from mentat_session_logger.voiceprints import (
     SpeakerMatchingStage,
     VoiceprintService,
 )
+
+logger = logging.getLogger(__name__)
 
 
 def _workspace_root() -> Path:
@@ -70,6 +74,11 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: list[str] | None = None) -> int:
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s %(levelname)s %(message)s",
+        stream=sys.stdout,
+    )
     parser = build_parser()
     args = parser.parse_args(argv)
     workspace = _workspace_root()
@@ -77,14 +86,14 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "init-env":
         env_path = resolver.init_env(args.name, force=args.force)
-        print(f"Initialized environment: {env_path}")
+        logger.info("Initialized environment: %s", env_path)
         return 0
 
     if args.command == "enroll-voiceprints":
         env = resolver.resolve(args.env)
         service = VoiceprintService(SimpleEmbeddingBackend())
         profiles = service.enroll_environment(env.root)
-        print(f"Enrolled profiles: {sorted(profiles.keys())}")
+        logger.info("Enrolled profiles: %s", sorted(profiles.keys()))
         return 0
 
     env = resolver.resolve(args.env)
@@ -99,7 +108,7 @@ def main(argv: list[str] | None = None) -> int:
         runner = PipelineRunner(_stage_registry(workspace, llm, prompts))
         pipeline = load_pipeline_config(workspace, args.pipeline)
         runner.run(context, pipeline, resume=args.resume)
-        print("Pipeline complete")
+        logger.info("Pipeline complete")
         return 0
 
     if args.command == "prepare-audio":
@@ -127,7 +136,7 @@ def main(argv: list[str] | None = None) -> int:
     else:
         parser.error(f"Unknown command: {args.command}")
 
-    print(f"Command complete: {args.command}")
+    logger.info("Command complete: %s", args.command)
     return 0
 
 
