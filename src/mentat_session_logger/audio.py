@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+import os
 import shutil
 import subprocess
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 from mentat_session_logger.artifacts import ArtifactStore
@@ -12,7 +13,7 @@ from mentat_session_logger.models import ArtifactRef, SessionContext, StageResul
 
 @dataclass
 class AudioCommandRunner:
-    ffmpeg_bin: str = "ffmpeg"
+    ffmpeg_bin: str = field(default_factory=lambda: os.getenv("MSL_FFMPEG_BIN", "ffmpeg"))
 
     def validate(self) -> None:
         if shutil.which(self.ffmpeg_bin) is None:
