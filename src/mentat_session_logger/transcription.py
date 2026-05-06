@@ -33,7 +33,9 @@ class AsrBackend(Protocol):
 
 @dataclass
 class WhisperXBackend:
-    device: str = field(default_factory=lambda: os.getenv("MSL_TORCH_DEVICE", "cpu"))
+    device: str = field(
+        default_factory=lambda: os.getenv("MSL_TORCH_DEVICE") or preferred_torch_device()
+    )
 
     def transcribe(
         self,

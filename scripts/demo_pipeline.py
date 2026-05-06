@@ -213,7 +213,8 @@ def main() -> int:
 
     stub_audio = artifacts.input_file(f"{args.session}_raw.wav")
     if not stub_audio.exists():
-        # Minimal valid-looking WAV header — enough for the stub runner to copy.
+        # Intentionally malformed placeholder — the stub audio runner copies bytes
+        # without parsing them, so no valid RIFF/WAVE structure is required here.
         stub_audio.write_bytes(b"RIFFstub")
         logger.info("Wrote stub input audio: %s", stub_audio)
 
