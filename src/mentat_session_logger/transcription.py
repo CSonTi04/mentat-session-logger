@@ -11,6 +11,15 @@ from mentat_session_logger.io import write_json, write_text
 from mentat_session_logger.models import ArtifactRef, SessionContext, StageResult
 
 
+def preferred_torch_device() -> str:
+    """Return ``"cuda"`` if a CUDA GPU is available, otherwise ``"cpu"``."""
+    try:
+        import torch  # type: ignore[import-not-found,unused-ignore]
+    except ImportError:
+        return "cpu"
+    return "cuda" if torch.cuda.is_available() else "cpu"
+
+
 class AsrBackend(Protocol):
     def transcribe(
         self,

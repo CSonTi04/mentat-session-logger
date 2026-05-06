@@ -9,17 +9,14 @@ from mentat_session_logger.artifacts import ArtifactStore
 from mentat_session_logger.diarization import DiarizationStage
 from mentat_session_logger.environments import EnvironmentResolver
 from mentat_session_logger.models import SessionContext
-from mentat_session_logger.transcription import StubAsrBackend, TranscriptionStage, WhisperXBackend
+from mentat_session_logger.transcription import (
+    StubAsrBackend,
+    TranscriptionStage,
+    WhisperXBackend,
+    preferred_torch_device,
+)
 
 logger = logging.getLogger(__name__)
-
-
-def _preferred_torch_device() -> str:
-    try:
-        import torch
-    except ImportError:
-        return "cpu"
-    return "cuda" if torch.cuda.is_available() else "cpu"
 
 
 def main() -> int:
@@ -53,7 +50,7 @@ def main() -> int:
         prepared_target.write_bytes(source.read_bytes())
 
     try:
-        backend = WhisperXBackend(device=_preferred_torch_device())
+        backend = WhisperXBackend(device=preferred_torch_device())
     except Exception:
         backend = StubAsrBackend()
 

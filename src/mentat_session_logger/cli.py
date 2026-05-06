@@ -24,7 +24,12 @@ from mentat_session_logger.models import SessionContext
 from mentat_session_logger.pipeline import PipelineRunner, PipelineStage, load_pipeline_config
 from mentat_session_logger.prompts import PromptRenderer
 from mentat_session_logger.transcript import GlossaryCorrectionStage, SpeakerMapApplicationStage
-from mentat_session_logger.transcription import StubAsrBackend, TranscriptionStage, WhisperXBackend
+from mentat_session_logger.transcription import (
+    StubAsrBackend,
+    TranscriptionStage,
+    WhisperXBackend,
+    preferred_torch_device,
+)
 from mentat_session_logger.voiceprints import (
     SimpleEmbeddingBackend,
     SpeakerMatchingStage,
@@ -54,6 +59,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     for cmd in [
         "prepare-audio",
+        "normalize-audio",
         "transcribe",
         "enroll-voiceprints",
         "match-speakers",
@@ -113,6 +119,8 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "prepare-audio":
         AudioPreprocessingStage().run(context, artifacts)
+    elif args.command == "normalize-audio":
+        AudioNormalizationStage().run(context, artifacts)
     elif args.command == "transcribe":
         _transcription_stage().run(context, artifacts)
         DiarizationStage().run(context, artifacts)
@@ -142,18 +150,10 @@ def main(argv: list[str] | None = None) -> int:
 
 def _transcription_stage() -> TranscriptionStage:
     try:
-        backend = WhisperXBackend(device=_preferred_torch_device())
+        backend = WhisperXBackend(device=preferred_torch_device())
         return TranscriptionStage(backend=backend)
     except Exception:
         return TranscriptionStage(backend=StubAsrBackend())
-
-
-def _preferred_torch_device() -> str:
-    try:
-        import torch  # type: ignore[import-not-found,unused-ignore]
-    except ImportError:
-        return "cpu"
-    return "cuda" if torch.cuda.is_available() else "cpu"
 
 
 def _stage_registry(
