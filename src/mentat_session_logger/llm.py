@@ -1,22 +1,34 @@
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass
+import os
+from dataclasses import dataclass, field
 from typing import Any, Protocol, cast
 
 import requests
 
 
 class LlmClient(Protocol):
-    def generate(self, prompt: str) -> str:
-        ...
+    def generate(self, prompt: str) -> str: ...
+
+
+def _parse_int_env(var: str, default: int) -> int:
+    raw = os.getenv(var)
+    if not raw:
+        return default
+    try:
+        return int(raw)
+    except ValueError:
+        raise ValueError(f"{var} must be a valid integer, got {raw!r}") from None
 
 
 @dataclass
 class OllamaClient:
     endpoint: str
     model: str
-    timeout_seconds: int = 120
+    timeout_seconds: int = field(
+        default_factory=lambda: _parse_int_env("MSL_LLM_TIMEOUT", default=120)
+    )
 
     def generate(self, prompt: str) -> str:
         response = requests.post(

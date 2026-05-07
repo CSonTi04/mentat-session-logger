@@ -69,8 +69,8 @@ The default environment is a template. Real campaign data should live in private
 Base:
 
 - Python 3.10+
-- `ffmpeg` in PATH
-- Python packages in `requirements.txt`
+- `ffmpeg` in PATH (or set `MSL_FFMPEG_BIN` to the full path)
+- Python packages declared in `pyproject.toml` (installed automatically with `pip install -e .`)
 
 Install links (clickable):
 
@@ -78,10 +78,14 @@ Install links (clickable):
 - FFmpeg downloads: [https://ffmpeg.org/download.html](https://ffmpeg.org/download.html)
 - Git downloads: [https://git-scm.com/downloads](https://git-scm.com/downloads)
 
-Optional heavy backends (not required for tests):
+Optional heavy backends for speech recognition and diarization:
 
-- `whisperx`
-- `pyannote.audio`
+```
+pip install -e .[asr]
+```
+
+This installs `torch`, `whisperx`, and `pyannote.audio`. A Hugging Face token (`HF_TOKEN`) is also required for speaker diarization.
+
 - `speechbrain`
 - Local LLM runtime (Ollama-compatible endpoint)
 
@@ -106,11 +110,11 @@ python -m venv .venv
 # 2) Upgrade pip tooling
 python -m pip install --upgrade pip setuptools wheel
 
-# 3) Install runtime dependencies from requirements.txt
-pip install -r requirements.txt
-
-# 4) Install package + dev tools (pytest, mypy, ruff)
+# 3) Install package + dev tools (pytest, mypy, ruff)
 pip install -e .[dev]
+
+# 4) Optional: install ASR/diarization backends
+pip install -e .[asr]
 ```
 
 Linux/macOS:
@@ -123,11 +127,11 @@ source .venv/bin/activate
 # 2) Upgrade pip tooling
 python -m pip install --upgrade pip setuptools wheel
 
-# 3) Install runtime dependencies from requirements.txt
-pip install -r requirements.txt
-
-# 4) Install package + dev tools (pytest, mypy, ruff)
+# 3) Install package + dev tools (pytest, mypy, ruff)
 pip install -e .[dev]
+
+# 4) Optional: install ASR/diarization backends
+pip install -e .[asr]
 ```
 
 Windows FFmpeg setup options:

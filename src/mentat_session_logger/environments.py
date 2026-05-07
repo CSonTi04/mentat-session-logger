@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
+from mentat_session_logger.config import apply_env_overrides
 from mentat_session_logger.io import ensure_dir, read_yaml, write_yaml
 from mentat_session_logger.models import EnvironmentConfig
 
@@ -27,21 +28,23 @@ class EnvironmentResolver:
         sessions_dir = env_root / str(paths.get("sessions", "sessions"))
         profiles_dir = env_root / str(paths.get("profiles", "profiles"))
 
-        return EnvironmentConfig(
-            name=str(cfg.get("name", env_name)),
-            root=env_root,
-            campaign_context_dir=campaign_context_dir,
-            voiceprints_dir=voiceprints_dir,
-            sessions_dir=sessions_dir,
-            profiles_dir=profiles_dir,
-            default_pipeline=str(defaults.get("pipeline", "default")),
-            output_language=str(defaults.get("output_language", "hu")),
-            asr_language=str(defaults.get("asr_language", "hu")),
-            min_speakers=int(defaults.get("min_speakers", 4)),
-            max_speakers=int(defaults.get("max_speakers", 8)),
-            llm_provider=str(llm.get("provider", "ollama")),
-            llm_endpoint=str(llm.get("endpoint", "http://localhost:11434/api/generate")),
-            llm_model=str(llm.get("model", "llama3.1:8b")),
+        return apply_env_overrides(
+            EnvironmentConfig(
+                name=str(cfg.get("name", env_name)),
+                root=env_root,
+                campaign_context_dir=campaign_context_dir,
+                voiceprints_dir=voiceprints_dir,
+                sessions_dir=sessions_dir,
+                profiles_dir=profiles_dir,
+                default_pipeline=str(defaults.get("pipeline", "default")),
+                output_language=str(defaults.get("output_language", "hu")),
+                asr_language=str(defaults.get("asr_language", "hu")),
+                min_speakers=int(defaults.get("min_speakers", 4)),
+                max_speakers=int(defaults.get("max_speakers", 8)),
+                llm_provider=str(llm.get("provider", "ollama")),
+                llm_endpoint=str(llm.get("endpoint", "http://localhost:11434/api/generate")),
+                llm_model=str(llm.get("model", "llama3.1:8b")),
+            )
         )
 
     def init_env(self, env_name: str, force: bool = False) -> Path:

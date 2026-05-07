@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import argparse
+import logging
+import sys
 from pathlib import Path
 
 from mentat_session_logger.artifacts import ArtifactStore
@@ -22,12 +24,18 @@ from mentat_session_logger.models import SessionContext
 from mentat_session_logger.pipeline import PipelineRunner, PipelineStage, load_pipeline_config
 from mentat_session_logger.prompts import PromptRenderer
 from mentat_session_logger.transcript import GlossaryCorrectionStage, SpeakerMapApplicationStage
-from mentat_session_logger.transcription import StubAsrBackend, TranscriptionStage, WhisperXBackend
+from mentat_session_logger.transcription import (
+    StubAsrBackend,
+    TranscriptionStage,
+    WhisperXBackend,
+)
 from mentat_session_logger.voiceprints import (
     SimpleEmbeddingBackend,
     SpeakerMatchingStage,
     VoiceprintService,
 )
+
+logger = logging.getLogger(__name__)
 
 
 def _workspace_root() -> Path:
@@ -45,11 +53,12 @@ def build_parser() -> argparse.ArgumentParser:
     run = sub.add_parser("run", help="Run configured pipeline")
     run.add_argument("--env", required=True)
     run.add_argument("--session", required=True)
-    run.add_argument("--pipeline", default="default")
+    run.add_argument("--pipeline", default=None)
     run.add_argument("--resume", action="store_true")
 
     for cmd in [
         "prepare-audio",
+        "normalize-audio",
         "transcribe",
         "enroll-voiceprints",
         "match-speakers",
@@ -70,6 +79,11 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: list[str] | None = None) -> int:
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s %(levelname)s %(message)s",
+        stream=sys.stdout,
+    )
     parser = build_parser()
     args = parser.parse_args(argv)
     workspace = _workspace_root()
@@ -77,14 +91,14 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "init-env":
         env_path = resolver.init_env(args.name, force=args.force)
-        print(f"Initialized environment: {env_path}")
+        logger.info("Initialized environment: %s", env_path)
         return 0
 
     if args.command == "enroll-voiceprints":
         env = resolver.resolve(args.env)
         service = VoiceprintService(SimpleEmbeddingBackend())
         profiles = service.enroll_environment(env.root)
-        print(f"Enrolled profiles: {sorted(profiles.keys())}")
+        logger.info("Enrolled profiles: %s", sorted(profiles.keys()))
         return 0
 
     env = resolver.resolve(args.env)
@@ -97,13 +111,16 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "run":
         runner = PipelineRunner(_stage_registry(workspace, llm, prompts))
-        pipeline = load_pipeline_config(workspace, args.pipeline)
+        pipeline_name = args.pipeline or env.default_pipeline
+        pipeline = load_pipeline_config(workspace, pipeline_name)
         runner.run(context, pipeline, resume=args.resume)
-        print("Pipeline complete")
+        logger.info("Pipeline complete")
         return 0
 
     if args.command == "prepare-audio":
         AudioPreprocessingStage().run(context, artifacts)
+    elif args.command == "normalize-audio":
+        AudioNormalizationStage().run(context, artifacts)
     elif args.command == "transcribe":
         _transcription_stage().run(context, artifacts)
         DiarizationStage().run(context, artifacts)
@@ -127,24 +144,16 @@ def main(argv: list[str] | None = None) -> int:
     else:
         parser.error(f"Unknown command: {args.command}")
 
-    print(f"Command complete: {args.command}")
+    logger.info("Command complete: %s", args.command)
     return 0
 
 
 def _transcription_stage() -> TranscriptionStage:
     try:
-        backend = WhisperXBackend(device=_preferred_torch_device())
+        backend = WhisperXBackend()
         return TranscriptionStage(backend=backend)
     except Exception:
         return TranscriptionStage(backend=StubAsrBackend())
-
-
-def _preferred_torch_device() -> str:
-    try:
-        import torch  # type: ignore[import-not-found,unused-ignore]
-    except ImportError:
-        return "cpu"
-    return "cuda" if torch.cuda.is_available() else "cpu"
 
 
 def _stage_registry(

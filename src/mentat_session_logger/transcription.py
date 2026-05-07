@@ -2,13 +2,22 @@ from __future__ import annotations
 
 import os
 from collections import Counter
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Protocol, cast
 
 from mentat_session_logger.artifacts import ArtifactStore
 from mentat_session_logger.io import write_json, write_text
 from mentat_session_logger.models import ArtifactRef, SessionContext, StageResult
+
+
+def preferred_torch_device() -> str:
+    """Return ``"cuda"`` if a CUDA GPU is available, otherwise ``"cpu"``."""
+    try:
+        import torch  # type: ignore[import-not-found,unused-ignore]
+    except ImportError:
+        return "cpu"
+    return "cuda" if torch.cuda.is_available() else "cpu"
 
 
 class AsrBackend(Protocol):
@@ -19,13 +28,14 @@ class AsrBackend(Protocol):
         model_name: str,
         min_speakers: int,
         max_speakers: int,
-    ) -> dict[str, Any]:
-        ...
+    ) -> dict[str, Any]: ...
 
 
 @dataclass
 class WhisperXBackend:
-    device: str = "cpu"
+    device: str = field(
+        default_factory=lambda: os.getenv("MSL_TORCH_DEVICE") or preferred_torch_device()
+    )
 
     def transcribe(
         self,

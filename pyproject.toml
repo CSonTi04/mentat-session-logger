@@ -17,6 +17,21 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+asr = [
+  "torch>=2.0",
+  "whisperx>=3.1",
+  "pyannote.audio>=3.1",
+]
+all = [
+  "torch>=2.0",
+  "whisperx>=3.1",
+  "pyannote.audio>=3.1",
+  "pytest>=8.2",
+  "ruff>=0.6",
+  "mypy>=1.10",
+  "types-PyYAML>=6.0.12",
+  "types-requests>=2.32.0.20240712",
+]
 dev = [
   "pytest>=8.2",
   "ruff>=0.6",

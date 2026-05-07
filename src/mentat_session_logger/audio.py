@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+import os
 import shutil
 import subprocess
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 from mentat_session_logger.artifacts import ArtifactStore
@@ -12,11 +13,13 @@ from mentat_session_logger.models import ArtifactRef, SessionContext, StageResul
 
 @dataclass
 class AudioCommandRunner:
-    ffmpeg_bin: str = "ffmpeg"
+    ffmpeg_bin: str = field(default_factory=lambda: os.getenv("MSL_FFMPEG_BIN") or "ffmpeg")
 
     def validate(self) -> None:
         if shutil.which(self.ffmpeg_bin) is None:
-            raise FileNotFoundError("ffmpeg is required but not found in PATH")
+            raise FileNotFoundError(
+                f"{self.ffmpeg_bin!r} not found; install ffmpeg or set MSL_FFMPEG_BIN"
+            )
 
     def to_mono_16k(self, input_audio: Path, output_wav: Path) -> None:
         ensure_dir(output_wav.parent)
@@ -73,7 +76,7 @@ class AudioPreprocessingStage:
         return StageResult(
             input_artifacts=[ArtifactRef("input_audio", input_audio)],
             output_artifacts=[ArtifactRef("prepared_audio", output_wav)],
-            metadata={"ffmpeg": getattr(self.runner, "ffmpeg_bin", "custom-runner")},
+            metadata={"ffmpeg": self.runner.ffmpeg_bin},
         )
 
 
