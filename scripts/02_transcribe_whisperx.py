@@ -13,7 +13,6 @@ from mentat_session_logger.transcription import (
     StubAsrBackend,
     TranscriptionStage,
     WhisperXBackend,
-    preferred_torch_device,
 )
 
 logger = logging.getLogger(__name__)
@@ -50,7 +49,7 @@ def main() -> int:
         prepared_target.write_bytes(source.read_bytes())
 
     try:
-        backend = WhisperXBackend(device=preferred_torch_device())
+        backend = WhisperXBackend()
     except Exception:
         backend = StubAsrBackend()
 

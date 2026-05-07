@@ -19,6 +19,17 @@ _INT_OVERRIDES: list[tuple[str, str]] = [
 ]
 
 
+def _parse_int_env(var: str) -> int | None:
+    """Parse an integer environment variable, raising a clear error when malformed."""
+    raw = os.getenv(var)
+    if not raw:
+        return None
+    try:
+        return int(raw)
+    except ValueError:
+        raise ValueError(f"{var} must be a valid integer, got {raw!r}") from None
+
+
 def apply_env_overrides(cfg: EnvironmentConfig) -> EnvironmentConfig:
     """Override :class:`EnvironmentConfig` fields from ``MSL_*`` environment variables.
 
@@ -45,7 +56,7 @@ def apply_env_overrides(cfg: EnvironmentConfig) -> EnvironmentConfig:
     ``MSL_ASR_LANGUAGE``
         ISO 639-1 language code for speech recognition, e.g. ``hu``.
     ``MSL_DEFAULT_PIPELINE``
-        Pipeline name used when ``--pipeline`` is omitted, e.g. ``default``.
+        Pipeline name used when ``--pipeline`` is omitted from the ``run`` command.
     ``MSL_MIN_SPEAKERS``
         Minimum speaker count hint for diarization (integer).
     ``MSL_MAX_SPEAKERS``
@@ -56,7 +67,7 @@ def apply_env_overrides(cfg: EnvironmentConfig) -> EnvironmentConfig:
         if val:
             setattr(cfg, attr, val)
     for env_var, attr in _INT_OVERRIDES:
-        raw = os.getenv(env_var)
-        if raw:
-            setattr(cfg, attr, int(raw))
+        int_val = _parse_int_env(env_var)
+        if int_val is not None:
+            setattr(cfg, attr, int_val)
     return cfg

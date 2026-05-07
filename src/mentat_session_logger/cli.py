@@ -28,7 +28,6 @@ from mentat_session_logger.transcription import (
     StubAsrBackend,
     TranscriptionStage,
     WhisperXBackend,
-    preferred_torch_device,
 )
 from mentat_session_logger.voiceprints import (
     SimpleEmbeddingBackend,
@@ -54,7 +53,7 @@ def build_parser() -> argparse.ArgumentParser:
     run = sub.add_parser("run", help="Run configured pipeline")
     run.add_argument("--env", required=True)
     run.add_argument("--session", required=True)
-    run.add_argument("--pipeline", default="default")
+    run.add_argument("--pipeline", default=None)
     run.add_argument("--resume", action="store_true")
 
     for cmd in [
@@ -112,7 +111,8 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "run":
         runner = PipelineRunner(_stage_registry(workspace, llm, prompts))
-        pipeline = load_pipeline_config(workspace, args.pipeline)
+        pipeline_name = args.pipeline or env.default_pipeline
+        pipeline = load_pipeline_config(workspace, pipeline_name)
         runner.run(context, pipeline, resume=args.resume)
         logger.info("Pipeline complete")
         return 0
@@ -150,7 +150,7 @@ def main(argv: list[str] | None = None) -> int:
 
 def _transcription_stage() -> TranscriptionStage:
     try:
-        backend = WhisperXBackend(device=preferred_torch_device())
+        backend = WhisperXBackend()
         return TranscriptionStage(backend=backend)
     except Exception:
         return TranscriptionStage(backend=StubAsrBackend())

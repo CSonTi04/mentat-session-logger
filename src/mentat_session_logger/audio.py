@@ -13,7 +13,7 @@ from mentat_session_logger.models import ArtifactRef, SessionContext, StageResul
 
 @dataclass
 class AudioCommandRunner:
-    ffmpeg_bin: str = field(default_factory=lambda: os.getenv("MSL_FFMPEG_BIN", "ffmpeg"))
+    ffmpeg_bin: str = field(default_factory=lambda: os.getenv("MSL_FFMPEG_BIN") or "ffmpeg")
 
     def validate(self) -> None:
         if shutil.which(self.ffmpeg_bin) is None:
